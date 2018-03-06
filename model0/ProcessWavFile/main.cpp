@@ -44,12 +44,6 @@ characteristic_t characheristic;
 AudioCompressor_t audioCompressor;
 
 void control_struct_init(control_struct_t* Control_struct,double* p_Buffer, int buffer_Length, double input_Gain, double* mode_gain, bool enable){
-	int i;
-	for(i=0; i<buffer_Length;i++){
-		
-		p_Buffer[i]=0.0;
-	}
-	
 	Control_struct->pBuffer=p_Buffer;
 	Control_struct->bufferLength=buffer_Length;
 	Control_struct->inputGain=input_Gain;
@@ -81,7 +75,7 @@ void neg_f(double* input_buffer_N, double* output_buffer_N, int buff_length_N){
 static void audio_compressor_init(AudioCompressor_t*  compressor)
 {
 	compressor->ratio = 1.0;
-	compressor->threshold = 0.5;
+	compressor->threshold = 0.3;
 	compressor->characteristics = CHARACTERISTICS_HARD_KNEE;
 }
 
@@ -191,10 +185,10 @@ int main(int argc, char* argv[])
 	char WavOutputName[256];
 	WAV_HEADER inputWAVhdr,outputWAVhdr;
 
-	double mode_gain[]={0.16, 0.5, 1.78, 3};	
+	double mode_gain[]={0.16, 0.5, 1.78, 1.41};	
 	double input_gain=0.5;
 	bool enable=true;
-	int mode=2;
+	int mode=0;
 	int output_mode[] = { 2,0,0 };
 
 
