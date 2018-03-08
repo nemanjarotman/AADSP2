@@ -1,10 +1,15 @@
-﻿  main.cpp
-c:\users\rok1\desktop\aadsp2 project\model0\processwavfile\main.cpp(72): warning C4018: '<': signed/unsigned mismatch
-c:\users\rok1\desktop\aadsp2 project\model0\processwavfile\main.cpp(113): warning C4018: '<': signed/unsigned mismatch
-c:\users\rok1\desktop\aadsp2 project\model0\processwavfile\main.cpp(296): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\rok1\desktop\aadsp2 project\model0\processwavfile\main.cpp(226): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+﻿  WAVheader.cpp
+c:\users\student\desktop\dan 5\model0\processwavfile\wavheader.cpp(84): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+  main.cpp
+c:\users\student\desktop\dan 5\model0\processwavfile\main.cpp(72): warning C4018: '<': signed/unsigned mismatch
+c:\users\student\desktop\dan 5\model0\processwavfile\main.cpp(113): warning C4018: '<': signed/unsigned mismatch
+c:\users\student\desktop\dan 5\model0\processwavfile\main.cpp(307): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\student\desktop\dan 5\model0\processwavfile\main.cpp(237): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
-c:\users\rok1\desktop\aadsp2 project\model0\processwavfile\main.cpp(228): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+c:\users\student\desktop\dan 5\model0\processwavfile\main.cpp(239): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
-  ProcessWavFile.vcxproj -> C:\Users\Rok1\Desktop\AADSP2 PROJECT\model0\Debug\ProcessWavFile.exe
-  ProcessWavFile.vcxproj -> C:\Users\Rok1\Desktop\AADSP2 PROJECT\model0\Debug\ProcessWavFile.pdb (Full PDB)
+  Generating Code...
+main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
+  ProcessWavFile.vcxproj -> C:\Users\student\Desktop\dan 5\model0\Debug\ProcessWavFile.exe
+  ProcessWavFile.vcxproj -> C:\Users\student\Desktop\dan 5\model0\Debug\ProcessWavFile.pdb (Full PDB)

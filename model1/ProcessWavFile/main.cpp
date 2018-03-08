@@ -14,11 +14,12 @@
 #define LEFT_S_CH 3
 #define RIGHT_S_CH 4
 #define LEFT_FE_CH 5
+#define MAX_SAMPLE 0.9999999994
 
 
 double sampleBuffer[MAX_NUM_CHANNEL][BLOCK_SIZE];
-double inputGain = 0.501187234;
-double modeGain[] = { 0.158489319, 0.501187234, 1.77827941, 1.412537545 };
+double inputGain = 0.5;
+double modeGain[] = { 0.16, 0.5, 1.78, 1.41 };
 int mode = 0;
 int output_mode[] = { 2,0,1 };
 bool enable_main = true;
@@ -52,6 +53,7 @@ static void gst_audio_dynamic_transform_compressor_float()
 			else if (val < -threshold) {
 				val = -threshold + (val + threshold) * ratio;
 			}
+
 			*p_l_fe = val;
 			p_l_fe++;
 		}
@@ -116,13 +118,13 @@ void processing()
 	double* p_ls;
 	double* p_rs;
 	int i;
-	
+
 	// INPUT GAIN
 	p_l = &sampleBuffer[LEFT_CH][0];
 	p_r = &sampleBuffer[RIGHT_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	for (i = 0; i < BLOCK_SIZE; i++) 
+	for (i = 0; i < BLOCK_SIZE; i++)
 	{
 		*p_l = *p_l * inputGain;
 		*p_r = *p_r * inputGain;
@@ -152,12 +154,12 @@ void processing()
 			p_ls++;
 			p_l_fe++;
 		}
-		
+
 	}
 	else
 	{
 		for (i = 0; i < BLOCK_SIZE; i++)
-		{	
+		{
 			*p_ls = *p_l * modeGain[1];
 			*p_l_fe = *p_l_fe * modeGain[3];
 
@@ -176,8 +178,14 @@ void processing()
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
 	for (i = 0; i < BLOCK_SIZE; i++)
-	{	
+	{
 		*p_l = *p_ls + *p_l + *p_l_fe;
+		if ((*p_l) > MAX_SAMPLE)
+			*p_l = MAX_SAMPLE;
+		else if ((*p_l) < -1.0)
+			*p_l = -1.0;
+		
+
 		*p_rs = *p_r * NEG_VALUE;
 		
 		p_l++;

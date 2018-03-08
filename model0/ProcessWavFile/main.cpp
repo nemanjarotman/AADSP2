@@ -14,6 +14,7 @@
 #define LEFT_S_CH 3
 #define RIGHT_S_CH 4
 #define LEFT_FE_CH 5
+#define MAX_SAMPLE 0.9999999994
 
 
 double sampleBuffer[MAX_NUM_CHANNEL][BLOCK_SIZE];
@@ -40,7 +41,6 @@ typedef struct __AudioCompressor
 	double threshold;
 	double ratio;
 } AudioCompressor_t;
-
 
 // structures init
 // ----------------------------------------------------------------------------
@@ -156,7 +156,18 @@ void adder_function(double* p_input_buffer_x, double* p_input_buffer_y, double* 
 	for (i = 0; i < buffer_len; i++)
 	{	
 		p_output_buffer[i] = p_input_buffer_x[i] + p_input_buffer_y[i] + p_input_buffer_z[i];
+
+		if (p_output_buffer[i] > MAX_SAMPLE) {
+			p_output_buffer[i] = MAX_SAMPLE;
+		}
+		else if (p_output_buffer[i] < -1.0) {
+			p_output_buffer[i] = -1.0;
+		}
+			
 	}
+	
+	
+	
 }
 
 void neg_function(double* p_input_buffer, double* p_output_buffer, int buffer_len)
@@ -209,8 +220,8 @@ int main(int argc, char* argv[])
 
 
 	//tmp
-	double mode_gain[] = {0.158489319, 0.501187234, 1.77827941, 1.412537545};
-	double input_gain = 0.501187234;				//def
+	double mode_gain[] = {0.16, 0.5, 1.78, 1.41};
+	double input_gain = 0.5;				//def
 	bool enable_main = true;
 	int mode = 0;							// MODE IZ TABELE SVE JE NA DEF
 	int output_mode[] = { 2,0,1 };			//IZ TABELE
