@@ -1,8 +1,13 @@
-﻿  main.cpp
-c:\users\student\desktop\dan 2\model2\processwavfile\main.cpp(267): warning C4244: '=': conversion from 'double' to 'DSPint', possible loss of data
-c:\users\student\desktop\dan 2\model2\processwavfile\main.cpp(201): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
-c:\users\student\desktop\dan 2\model2\processwavfile\main.cpp(203): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
-  ProcessWavFile.vcxproj -> C:\Users\student\Desktop\dan 2\model2\Debug\ProcessWavFile.exe
-  ProcessWavFile.vcxproj -> C:\Users\student\Desktop\dan 2\model2\Debug\ProcessWavFile.pdb (Full PDB)
+﻿  stdfix_emu.cpp
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\stdfix_emu.cpp(56): warning C4309: 'argument': truncation of constant value
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\stdfix_emu.cpp(310): warning C4309: 'argument': truncation of constant value
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\stdfix_emu.cpp(518): warning C4244: '=': conversion from 'unsigned long' to 'char', possible loss of data
+  fixed_point_math.cpp
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\fixed_point_math.cpp(455): warning C4309: '=': truncation of constant value
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\fixed_point_math.cpp(517): warning C4244: '=': conversion from 'unsigned long' to 'coyote_math::accumulator::guard_t', possible loss of data
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\fixed_point_math.cpp(527): warning C4309: '=': truncation of constant value
+c:\users\rok1\desktop\aadsp2 project\model2\processwavfile\fixed_point_math.cpp(557): warning C4309: '=': truncation of constant value
+  Generating Code...
+fixed_point_math.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
+  ProcessWavFile.vcxproj -> C:\Users\Rok1\Desktop\AADSP2 PROJECT\model2\Debug\ProcessWavFile.exe
+  ProcessWavFile.vcxproj -> C:\Users\Rok1\Desktop\AADSP2 PROJECT\model2\Debug\ProcessWavFile.pdb (Full PDB)

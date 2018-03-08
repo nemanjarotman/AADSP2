@@ -7,7 +7,7 @@
 #define MAX_NUM_CHANNEL 8
 
 #define BUFFER_MAX_LENGTH 4000
-#define NEG -1
+#define NEG_VALUE -1
 
 #define LEFT_CH 0
 #define RIGHT_CH 1
@@ -19,7 +19,8 @@
 double sampleBuffer[MAX_NUM_CHANNEL][BLOCK_SIZE];
 
 
-typedef struct{
+typedef struct
+{
 	double* pBuffer;
 	int bufferLength;
 	double inputGain;			// - 6 def
@@ -27,12 +28,14 @@ typedef struct{
 	bool enable;
 } ControlStruct_t;
 
-typedef enum __characteristic{
+typedef enum __characteristic
+{
 	CHARACTERISTICS_HARD_KNEE = 0,
 	CHARACTERISTICS_SOFT_KNEE
 } characteristic_t;
 
-typedef struct __AudioCompressor{
+typedef struct __AudioCompressor
+{
 	int characteristics;
 	double threshold;
 	double ratio;
@@ -48,21 +51,24 @@ ControlStruct_t controlStruct;
 
 // ----------------------------------------------------------------------------
 
-static void audio_compressor_init(AudioCompressor_t* compressor){
-	compressor->ratio == 0.05;
+static void audio_compressor_init(AudioCompressor_t* compressor)
+{
+	compressor->ratio = 0.05;
 	compressor->threshold = 0.3;
 	compressor->characteristics = CHARACTERISTICS_HARD_KNEE;
 }
 
-static void gst_audio_dynamic_transform_compressor_float(AudioCompressor_t* compressor, double* data, unsigned int num_samples){
+static void gst_audio_dynamic_transform_compressor_float(AudioCompressor_t* compressor, double* data, unsigned int num_samples)
+{
 	double val, threshold = compressor->threshold;
 	int i;
 
 	/* Nothing to do for us if ratio == 1.0. */
-	if (compressor->ratio == 1)
+	if (compressor->ratio == 1.0)
 		return;
 
-	if (compressor->characteristics == CHARACTERISTICS_HARD_KNEE){
+	if (compressor->characteristics == CHARACTERISTICS_HARD_KNEE)
+	{
 		for (i = 0; i < num_samples; i++) {
 			val = data[i];
 
@@ -75,24 +81,25 @@ static void gst_audio_dynamic_transform_compressor_float(AudioCompressor_t* comp
 			data[i] = val;
 		}
 
-	}else {
+	}
+	else{
 		double a_p, b_p, c_p;
 		double a_n, b_n, c_n;
 
 		/* We build a 2nd degree polynomial here for
-		* values greater than threshold or small than
-		* -threshold with:
-		* f(t) = t, f'(t) = 1, f'(m) = r
-		* =>
-		* a = (1-r)/(2*(t-m))
-		* b = (r*t - m)/(t-m)
-		* c = t * (1 - b - a*t)
-		* f(x) = ax^2 + bx + c
-		*/
+		 * values greater than threshold or small than
+		 * -threshold with:
+		 * f(t) = t, f'(t) = 1, f'(m) = r
+		 * =>
+		 * a = (1-r)/(2*(t-m))
+		 * b = (r*t - m)/(t-m)
+		 * c = t * (1 - b - a*t)
+		 * f(x) = ax^2 + bx + c
+		 */
 
 		/* If treshold is the same as the maximum
-		* we need to raise it a bit to prevent
-		* division by zero. */
+		 * we need to raise it a bit to prevent
+		 * division by zero. */
 		if (threshold == 1.0)
 			threshold = 1.0 + 0.00001;
 
@@ -124,7 +131,8 @@ static void gst_audio_dynamic_transform_compressor_float(AudioCompressor_t* comp
 
 }
 
-void processing_init(ControlStruct_t* control_struct, double* p_buffer, int buffer_len, double input_gain, double* mode_gain, bool enable){
+void processing_init(ControlStruct_t* control_struct, double* p_buffer, int buffer_len, double input_gain, double* mode_gain, bool enable)
+{
 
 	control_struct->pBuffer = p_buffer;
 	control_struct->bufferLength = buffer_len;
@@ -133,85 +141,97 @@ void processing_init(ControlStruct_t* control_struct, double* p_buffer, int buff
 	control_struct->enable = enable;				 ///// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
-void gain_function(double* p_input_buffer, double* p_output_buffer, int buffer_len, double gain){
+void gain_function(double* p_input_buffer, double* p_output_buffer, int buffer_len, double gain)
+{
 	int i;
-	for (i = 0; i < buffer_len; i++){
+	for (i = 0; i < buffer_len; i++)
+	{
 		p_output_buffer[i] = p_input_buffer[i] * gain;
 	}
 }
 
-void adder_function(double* p_input_buffer_A1, double* p_input_buffer_A2, double* p_input_buffer_A3, double* p_output_buffer, int buffer_len){
+void adder_function(double* p_input_buffer_x, double* p_input_buffer_y, double* p_input_buffer_z, double* p_output_buffer, int buffer_len)
+{
 	int i;
-	for (i = 0; i < buffer_len; i++){
-		p_output_buffer[i] = p_input_buffer_A1[i] + p_input_buffer_A2[i] + p_input_buffer_A3[i];
+	for (i = 0; i < buffer_len; i++)
+	{	
+		p_output_buffer[i] = p_input_buffer_x[i] + p_input_buffer_y[i] + p_input_buffer_z[i];
 	}
 }
 
-void neg_function(double* p_input_buffer, double* p_output_buffer, int buffer_len){
+void neg_function(double* p_input_buffer, double* p_output_buffer, int buffer_len)
+{
 	int i;
-	for (i = 0; i < buffer_len; i++){
-		p_output_buffer[i] = p_input_buffer[i] * NEG;
+	for (i = 0; i < buffer_len; i++)
+	{
+		p_output_buffer[i] = p_input_buffer[i] * NEG_VALUE;
 	}
 }
 
-void processing(double input_gain, int mode, int output_mode, double* mode_gain, AudioCompressor_t* audio_compressor){
+void processing(double input_gain, int mode, int output_mode, double* mode_gain, AudioCompressor_t* audio_compressor)
+{
 	int i;
 
 	gain_function(sampleBuffer[LEFT_CH], sampleBuffer[LEFT_CH], BLOCK_SIZE, input_gain);
 	gain_function(sampleBuffer[RIGHT_CH], sampleBuffer[RIGHT_CH], BLOCK_SIZE, input_gain);
-
-	for (i = 0; i < BLOCK_SIZE; i++){
+	
+	for (i = 0; i < BLOCK_SIZE; i++)
+	{
 		sampleBuffer[LEFT_FE_CH][i] = sampleBuffer[LEFT_CH][i];
 	}
 
 	gst_audio_dynamic_transform_compressor_float(audio_compressor, sampleBuffer[LEFT_FE_CH], BLOCK_SIZE);
 
-	if (mode == 0){
+	if (mode == 0)
+	{
 		gain_function(sampleBuffer[LEFT_CH], sampleBuffer[LEFT_S_CH], BLOCK_SIZE, mode_gain[0]);
 		gain_function(sampleBuffer[LEFT_FE_CH], sampleBuffer[LEFT_FE_CH], BLOCK_SIZE, mode_gain[2]);
-	}else{
+	}
+	else
+	{
 		gain_function(sampleBuffer[LEFT_CH], sampleBuffer[LEFT_S_CH], BLOCK_SIZE, mode_gain[1]);
 		gain_function(sampleBuffer[LEFT_FE_CH], sampleBuffer[LEFT_FE_CH], BLOCK_SIZE, mode_gain[3]);
 	}
 
 	adder_function(sampleBuffer[LEFT_S_CH], sampleBuffer[LEFT_CH], sampleBuffer[LEFT_FE_CH], sampleBuffer[LEFT_CH], BLOCK_SIZE);
-
+	
 	neg_function(sampleBuffer[RIGHT_CH], sampleBuffer[RIGHT_S_CH], BLOCK_SIZE);
 }
 
 
-int main(int argc, char* argv[]){
-	FILE *wav_in = NULL;
-	FILE *wav_out = NULL;
+int main(int argc, char* argv[])
+{
+	FILE *wav_in=NULL;
+	FILE *wav_out=NULL;
 	char WavInputName[256];
 	char WavOutputName[256];
-	WAV_HEADER inputWAVhdr, outputWAVhdr;
+	WAV_HEADER inputWAVhdr,outputWAVhdr;
 
 
 	//tmp
-	double mode_gain[] = { 0.16, 0.5, 1.78, 1.41 };
-	double input_gain = 0.5;				//def
+	double mode_gain[] = {0.158489319, 0.501187234, 1.77827941, 1.412537545};
+	double input_gain = 0.501187234;				//def
 	bool enable_main = true;
 	int mode = 0;							// MODE IZ TABELE SVE JE NA DEF
 	int output_mode[] = { 2,0,1 };			//IZ TABELE
 
 
 
-											// Init channel buffers
-	for (int i = 0; i<MAX_NUM_CHANNEL; i++)
-		memset(&sampleBuffer[i], 0, BLOCK_SIZE);
+	// Init channel buffers
+	for(int i=0; i<MAX_NUM_CHANNEL; i++)
+		memset(&sampleBuffer[i],0,BLOCK_SIZE);
 
 	// Open input and output wav files
 	//-------------------------------------------------
-	strcpy(WavInputName, argv[1]);
-	wav_in = OpenWavFileForRead(WavInputName, "rb");
-	strcpy(WavOutputName, argv[2]);
-	wav_out = OpenWavFileForRead(WavOutputName, "wb");
+	strcpy(WavInputName,argv[1]);
+	wav_in = OpenWavFileForRead (WavInputName,"rb");
+	strcpy(WavOutputName,argv[2]);
+	wav_out = OpenWavFileForRead (WavOutputName,"wb");
 	//-------------------------------------------------
 
 	// Read input wav header
 	//-------------------------------------------------
-	ReadWavHeader(wav_in, inputWAVhdr);
+	ReadWavHeader(wav_in,inputWAVhdr);
 	//-------------------------------------------------
 
 	// Set up output WAV header
@@ -219,9 +239,9 @@ int main(int argc, char* argv[]){
 	outputWAVhdr = inputWAVhdr;
 	outputWAVhdr.fmt.NumChannels = 8; // change number of channels
 
-	int oneChannelSubChunk2Size = inputWAVhdr.data.SubChunk2Size / inputWAVhdr.fmt.NumChannels;
-	int oneChannelByteRate = inputWAVhdr.fmt.ByteRate / inputWAVhdr.fmt.NumChannels;
-	int oneChannelBlockAlign = inputWAVhdr.fmt.BlockAlign / inputWAVhdr.fmt.NumChannels;
+	int oneChannelSubChunk2Size = inputWAVhdr.data.SubChunk2Size/inputWAVhdr.fmt.NumChannels;
+	int oneChannelByteRate = inputWAVhdr.fmt.ByteRate/inputWAVhdr.fmt.NumChannels;
+	int oneChannelBlockAlign = inputWAVhdr.fmt.BlockAlign/inputWAVhdr.fmt.NumChannels;
 
 	outputWAVhdr.data.SubChunk2Size = oneChannelSubChunk2Size*outputWAVhdr.fmt.NumChannels;
 	outputWAVhdr.fmt.ByteRate = oneChannelByteRate*outputWAVhdr.fmt.NumChannels;
@@ -230,7 +250,7 @@ int main(int argc, char* argv[]){
 
 	// Write output WAV header to file
 	//-------------------------------------------------
-	WriteWavHeader(wav_out, outputWAVhdr);
+	WriteWavHeader(wav_out,outputWAVhdr);
 
 	// Init functions
 	processing_init(&controlStruct, *sampleBuffer, MAX_NUM_CHANNEL, input_gain, mode_gain, enable_main);
@@ -241,33 +261,41 @@ int main(int argc, char* argv[]){
 	//-------------------------------------------------
 	{
 		int sample;
-		int BytesPerSample = inputWAVhdr.fmt.BitsPerSample / 8;
+		int BytesPerSample = inputWAVhdr.fmt.BitsPerSample/8;
 		const double SAMPLE_SCALE = -(double)(1 << 31);		//2^31
-		int iNumSamples = inputWAVhdr.data.SubChunk2Size / (inputWAVhdr.fmt.NumChannels*inputWAVhdr.fmt.BitsPerSample / 8);
+		int iNumSamples = inputWAVhdr.data.SubChunk2Size/(inputWAVhdr.fmt.NumChannels*inputWAVhdr.fmt.BitsPerSample/8);
 
 		// exact file length should be handled correctly...
-		for (int i = 0; i<iNumSamples / BLOCK_SIZE; i++){
-			for (int j = 0; j<BLOCK_SIZE; j++){
-				for (int k = 0; k<inputWAVhdr.fmt.NumChannels; k++){
+		for(int i=0; i<iNumSamples/BLOCK_SIZE; i++)
+		{
+			for(int j=0; j<BLOCK_SIZE; j++)
+			{
+				for(int k=0; k<inputWAVhdr.fmt.NumChannels; k++)
+				{
 					sample = 0; //debug
 					fread(&sample, BytesPerSample, 1, wav_in);
 					sample = sample << (32 - inputWAVhdr.fmt.BitsPerSample); // force signextend
 					sampleBuffer[k][j] = sample / SAMPLE_SCALE;				// scale sample to 1.0/-1.0 range
 				}
 			}
+			
 
-
-			if (enable_main == true){
+			if (enable_main == true)
+			{
 				processing(input_gain, mode, *output_mode, mode_gain, &audioCompressor);
-			}else{
+			}
+			else
+			{
 				printf("Enable is turned OFF!\n");
 			}
 
-			for (int j = 0; j<BLOCK_SIZE; j++){
-				for (int k = 0; k<outputWAVhdr.fmt.NumChannels; k++){
-					sample = sampleBuffer[k][j] * SAMPLE_SCALE;	// crude, non-rounding
+			for(int j=0; j<BLOCK_SIZE; j++)
+			{
+				for(int k=0; k<outputWAVhdr.fmt.NumChannels; k++)
+				{
+					sample = sampleBuffer[k][j] * SAMPLE_SCALE ;	// crude, non-rounding
 					sample = sample >> (32 - inputWAVhdr.fmt.BitsPerSample);
-					fwrite(&sample, outputWAVhdr.fmt.BitsPerSample / 8, 1, wav_out);
+					fwrite(&sample, outputWAVhdr.fmt.BitsPerSample/8, 1, wav_out);
 				}
 			}
 		}

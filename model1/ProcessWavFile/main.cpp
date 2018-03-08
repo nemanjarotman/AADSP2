@@ -17,8 +17,8 @@
 
 
 double sampleBuffer[MAX_NUM_CHANNEL][BLOCK_SIZE];
-double inputGain = 0.5;
-double modeGain[] = { 0.16, 0.5, 1.78, 1.41 };
+double inputGain = 0.501187234;
+double modeGain[] = { 0.158489319, 0.501187234, 1.77827941, 1.412537545 };
 int mode = 0;
 int output_mode[] = { 2,0,1 };
 bool enable_main = true;
@@ -28,19 +28,22 @@ double threshold = 0.3;
 int characteristics = 0;			//CHARACTERISTICS_HARD_KNEE
 
 
-static void gst_audio_dynamic_transform_compressor_float(){	
+static void gst_audio_dynamic_transform_compressor_float()
+{
 	double* p_l_fe;
-	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 	double val;
 	int i;
 
+	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
 	/* Nothing to do for us if ratio == 1.0. */
 	if (ratio == 1.0)
 		return;
 
-	if (characteristics == 0){
+	if (characteristics == 0)
+	{
 		for (i = 0; i < BLOCK_SIZE; i++) {
+			
 			val = *p_l_fe;
 
 			if (val > threshold) {
@@ -53,7 +56,9 @@ static void gst_audio_dynamic_transform_compressor_float(){
 			p_l_fe++;
 		}
 
-	}else {
+	}
+	else 
+	{
 		double a_p, b_p, c_p;
 		double a_n, b_n, c_n;
 
@@ -81,10 +86,6 @@ static void gst_audio_dynamic_transform_compressor_float(){
 		b_n = (-ratio * threshold + 1.0) / (-threshold + 1.0);
 		c_n = -threshold * (1.0 - b_n + a_n * threshold);
 
-		double* p_l_fe;
-		
-		p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
-
 		for (i = 0; i < BLOCK_SIZE; i++) {
 			val = *p_l_fe;
 
@@ -101,27 +102,28 @@ static void gst_audio_dynamic_transform_compressor_float(){
 				val = a_n * val * val + b_n * val + c_n;
 			}
 			*p_l_fe = val;
-
 			p_l_fe++;
 		}
 	}
 }
 
 
-void processing(){
+void processing()
+{
 	double* p_l;
 	double* p_r;
 	double* p_l_fe;
 	double* p_ls;
 	double* p_rs;
 	int i;
-
+	
 	// INPUT GAIN
 	p_l = &sampleBuffer[LEFT_CH][0];
 	p_r = &sampleBuffer[RIGHT_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	for (i = 0; i < BLOCK_SIZE; i++){
+	for (i = 0; i < BLOCK_SIZE; i++) 
+	{
 		*p_l = *p_l * inputGain;
 		*p_r = *p_r * inputGain;
 		*p_l_fe = *p_l;
@@ -139,8 +141,10 @@ void processing(){
 	p_ls = &sampleBuffer[LEFT_S_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	if (mode == 0){
-		for (i = 0; i < BLOCK_SIZE; i++){
+	if (mode == 0)
+	{
+		for (i = 0; i < BLOCK_SIZE; i++)
+		{
 			*p_ls = *p_l * modeGain[0];
 			*p_l_fe = *p_l_fe * modeGain[2];
 
@@ -148,9 +152,12 @@ void processing(){
 			p_ls++;
 			p_l_fe++;
 		}
-
-	}else{
-		for (i = 0; i < BLOCK_SIZE; i++){
+		
+	}
+	else
+	{
+		for (i = 0; i < BLOCK_SIZE; i++)
+		{	
 			*p_ls = *p_l * modeGain[1];
 			*p_l_fe = *p_l_fe * modeGain[3];
 
@@ -168,10 +175,11 @@ void processing(){
 	p_rs = &sampleBuffer[RIGHT_S_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	for (i = 0; i < BLOCK_SIZE; i++){
+	for (i = 0; i < BLOCK_SIZE; i++)
+	{	
 		*p_l = *p_ls + *p_l + *p_l_fe;
 		*p_rs = *p_r * NEG_VALUE;
-
+		
 		p_l++;
 		p_r++;
 		p_ls++;
@@ -189,7 +197,7 @@ int main(int argc, char* argv[])
 	char WavOutputName[256];
 	WAV_HEADER inputWAVhdr, outputWAVhdr;
 
-	// Init channel buffers
+											// Init channel buffers
 	for (int i = 0; i<MAX_NUM_CHANNEL; i++)
 		memset(&sampleBuffer[i], 0, BLOCK_SIZE);
 

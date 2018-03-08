@@ -2,131 +2,100 @@
 #include <stdlib.h>
 #include <string.h>
 #include "WAVheader.h"
-#include "common.h"
-#include "stdfix_emu.h"
 #include "fixed_point_math.h"
+#include "stdfix_emu.h"
+#include "common.h"
+
 
 #define BLOCK_SIZE 16
 #define MAX_NUM_CHANNEL 8
 
 #define BUFFER_MAX_LENGTH 4000
-#define NEG_VALUE -1
-
-#define LEFT_CH 0
-#define RIGHT_CH 1
-#define LEFT_S_CH 3
-#define RIGHT_S_CH 4
-#define LEFT_FE_CH 5
 
 
 DSPfract sampleBuffer[MAX_NUM_CHANNEL][BLOCK_SIZE];
-DSPfract inputGain = 0.5;
-DSPfract modeGain[] = { 0.02, 0.25, 0.89, 0.705 };
+DSPfract* sampleBufferL = sampleBuffer[0];
+DSPfract* sampleBufferR = sampleBuffer[1];
+DSPfract* sampleBufferLS = sampleBuffer[3];
+DSPfract* sampleBufferRS = sampleBuffer[4];
+DSPfract* sampleBufferLFE = sampleBuffer[5];
+
+DSPfract inputGain = FRACT_NUM(0.501187234);
+DSPfract modeGain[] = { FRACT_NUM(0.0792446595), FRACT_NUM(0.250593617), FRACT_NUM(0.889139705), FRACT_NUM(0.7062687725) };			// >> 1		def: 0.16, 0.5, 1.78, 1.41
 DSPint mode = 0;
 DSPint output_mode[] = { 2,0,1 };
-bool enable_main = true;
+DSPint enable_main = 0;
 
-DSPfract ratio = 1.0;
-DSPfract threshold = 0.3;
-DSPint characteristics = 0;			//CHARACTERISTICS_HARD_KNEE
+DSPfract ratio = FRACT_NUM(0.05);
+DSPfract threshold = FRACT_NUM(0.3);
+
+DSPint outputChannelNum = 5;
 
 
-static void gst_audio_dynamic_transform_compressor_float(){	
+static void gst_audio_dynamic_transform_compressor_float()
+{
 	DSPfract* p_l_fe;
-	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 	DSPfract val;
 	DSPint i;
+	DSPaccum tmp;
 
+	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
 	/* Nothing to do for us if ratio == 1.0. */
-	if (ratio == 1.0)
+	if (ratio == FRACT_NUM(1.0))
 		return;
 
-	if (characteristics == 0){
-		for (i = 0; i < BLOCK_SIZE; i++) {
-			val = *p_l_fe;
+	for (i = 0; i < BLOCK_SIZE; i++) 
+	{		
+		val = *p_l_fe;
 
-			if (val > threshold) {
-				val = threshold + (val - threshold) * ratio;
-			}
-			else if (val < -threshold) {
-				val = -threshold + (val + threshold) * ratio;
-			}
-			*p_l_fe = val;
-			p_l_fe++;
+		if (val > threshold)
+		{
+			//val = threshold + (val - threshold) * ratio;
+			val = val - threshold;
+			tmp = val * ratio;
+			tmp = tmp + (threshold);										//sabiranje dva akumulatora ?
+			val = (DSPfract)tmp;
 		}
-
-	}else {
-		double a_p, b_p, c_p;
-		double a_n, b_n, c_n;
-
-		/* We build a 2nd degree polynomial here for
-		* values greater than threshold or small than
-		* -threshold with:
-		* f(t) = t, f'(t) = 1, f'(m) = r
-		* =>
-		* a = (1-r)/(2*(t-m))
-		* b = (r*t - m)/(t-m)
-		* c = t * (1 - b - a*t)
-		* f(x) = ax^2 + bx + c
-		*/
-
-		/* If treshold is the same as the maximum
-		* we need to raise it a bit to prevent
-		* division by zero. */
-		if (threshold == 1.0)
-			threshold = 1.0 + 0.00001;
-
-		a_p = (1.0 - ratio) / (2.0 * (threshold - 1.0));
-		b_p = (ratio * threshold - 1.0) / (threshold - 1.0);
-		c_p = threshold * (1.0 - b_p - a_p * threshold);
-		a_n = (1.0 - ratio) / (2.0 * (-threshold + 1.0));
-		b_n = (-ratio * threshold + 1.0) / (-threshold + 1.0);
-		c_n = -threshold * (1.0 - b_n + a_n * threshold);
-
-		double* p_l_fe;
-		
-		p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
-
-		for (i = 0; i < BLOCK_SIZE; i++) {
-			val = *p_l_fe;
-
-			if (val > 1.0) {
-				val = 1.0 + (val - 1.0) * ratio;
-			}
-			else if (val > threshold) {
-				val = a_p * val * val + b_p * val + c_p;
-			}
-			else if (val < -1.0) {
-				val = -1.0 + (val + 1.0) * ratio;
-			}
-			else if (val < -threshold) {
-				val = a_n * val * val + b_n * val + c_n;
-			}
-			*p_l_fe = val;
-
-			p_l_fe++;
-		}
+		else if (val < -threshold) 
+		{
+			//val = -threshold + (val + threshold) * ratio;
+			val = val + threshold;
+			tmp = val * ratio;
+			tmp = tmp - (threshold);
+			val = (DSPfract)tmp;
+		}				
 	}
+	*p_l_fe = val;
+	p_l_fe++;
 }
 
 
-void processing(){
-	double* p_l;
-	double* p_r;
-	double* p_l_fe;
-	double* p_ls;
-	double* p_rs;
+void processing()
+{
+	DSPfract* p_l=sampleBufferL;
+	DSPfract* p_r=sampleBufferR;
+	DSPfract* p_l_fe=sampleBufferLFE;
+	DSPfract* p_ls=sampleBufferLS;
+	DSPfract* p_rs=sampleBufferRS;
 	DSPint i;
-
+	DSPaccum tmp1, tmp2;
+	
 	// INPUT GAIN
 	p_l = &sampleBuffer[LEFT_CH][0];
 	p_r = &sampleBuffer[RIGHT_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	for (i = 0; i < BLOCK_SIZE; i++){
-		*p_l = *p_l * inputGain;
-		*p_r = *p_r * inputGain;
+	for (i = 0; i < BLOCK_SIZE; i++) 
+	{
+		//*p_l = *p_l * inputGain;
+		//*p_r = *p_r * inputGain;
+		tmp1 = *p_l * inputGain;
+		tmp2 = *p_r * inputGain;
+
+		*p_l = (DSPfract)tmp1;
+		*p_r = (DSPfract)tmp2;
+
 		*p_l_fe = *p_l;
 
 		p_l++;
@@ -136,24 +105,36 @@ void processing(){
 
 	gst_audio_dynamic_transform_compressor_float();
 
-
 	// MODE GAIN
 	p_l = &sampleBuffer[LEFT_CH][0];
 	p_ls = &sampleBuffer[LEFT_S_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	if (mode == 0){
-		for (i = 0; i < BLOCK_SIZE; i++){
-			*p_ls = *p_l * modeGain[0];
-			*p_l_fe = *p_l_fe * modeGain[2];
+	if (mode == 0)
+	{
+		for (i = 0; i < BLOCK_SIZE; i++)
+		{
+			//*p_ls = *p_l * modeGain[0];						//probati direktno mode gain
+			tmp1 = (DSPaccum)*p_l * ACCUM_NUM(0.0792446595);
+			//*p_l_fe = *p_l_fe * modeGain[2];
+			tmp2 = (DSPaccum)*p_l_fe * ACCUM_NUM(0.889139705);
+
+			*p_ls = (DSPfract)tmp1;
+			*p_l_fe = (DSPfract)tmp2;
+
+			*p_ls << 1;					// << || <<=
+			*p_l_fe << 1;
 
 			p_l++;
 			p_ls++;
 			p_l_fe++;
 		}
-
-	}else{
-		for (i = 0; i < BLOCK_SIZE; i++){
+		
+	}
+	else
+	{
+		for (i = 0; i < BLOCK_SIZE; i++)
+		{	
 			*p_ls = *p_l * modeGain[1];
 			*p_l_fe = *p_l_fe * modeGain[3];
 
@@ -171,10 +152,11 @@ void processing(){
 	p_rs = &sampleBuffer[RIGHT_S_CH][0];
 	p_l_fe = &sampleBuffer[LEFT_FE_CH][0];
 
-	for (i = 0; i < BLOCK_SIZE; i++){
-		*p_l = *p_ls + *p_l + *p_l_fe;
-		*p_rs = *p_r * NEG_VALUE;
-
+	for (i = 0; i < BLOCK_SIZE; i++)
+	{	
+		*p_l = *p_ls + *p_l + *p_l_fe;		// sabiranje ?
+		*p_rs = *p_r * FRACT_NUM(-1);
+		
 		p_l++;
 		p_r++;
 		p_ls++;
@@ -192,10 +174,14 @@ DSPint main(DSPint argc, char* argv[])
 	char WavOutputName[256];
 	WAV_HEADER inputWAVhdr, outputWAVhdr;
 
-	// Init channel buffers
-	for (DSPint i = 0; i<MAX_NUM_CHANNEL; i++)
-		memset(&sampleBuffer[i], 0, BLOCK_SIZE);
-
+											// Init channel buffers
+	for (DSPint i = 0; i < MAX_NUM_CHANNEL; i++)
+	{
+		for (DSPint j = 0; j < BLOCK_SIZE; j++)					// ZAGRADE
+		{
+			sampleBuffer[i][j] = FRACT_NUM(0.0);
+		}
+	}
 	// Open input and output wav files
 	//-------------------------------------------------
 	strcpy(WavInputName, argv[1]);
@@ -251,7 +237,7 @@ DSPint main(DSPint argc, char* argv[])
 			}
 
 
-			if (enable_main == true)
+			if (enable_main == 0)
 			{
 				processing();
 			}
@@ -264,7 +250,7 @@ DSPint main(DSPint argc, char* argv[])
 			{
 				for (DSPint k = 0; k<outputWAVhdr.fmt.NumChannels; k++)
 				{
-					sample = sampleBuffer[k][j] * SAMPLE_SCALE;	// crude, non-rounding
+					sample = sampleBuffer[k][j].toLong();	// crude, non-rounding
 					sample = sample >> (32 - inputWAVhdr.fmt.BitsPerSample);
 					fwrite(&sample, outputWAVhdr.fmt.BitsPerSample / 8, 1, wav_out);
 				}
