@@ -83,7 +83,7 @@ import clide.boardconfig.xml.simulator.XmlScpFile;
 	//
 	// argv (optional)
 	//
-	'argv':                         "c:\\Users\\Rok1\\Desktop\\AADSP2 PROJECT\\TestStreams\\WhiteNoise.wav c:\\materija\\RA2282014\\project\\OutStreams\\Out_WhiteNoise_model3.wav",
+	'argv':                         "c:\\materija\\RA2282014\\project\\TestStreams\\WhiteNoise.wav c:\\materija\\RA2282014\\project\\OutStreams\\Out_WhiteNoise_model3.wav",
 	
 	//
 	// scp files (optional)
